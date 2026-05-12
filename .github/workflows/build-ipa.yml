@@ -94,6 +94,10 @@ jobs:
           APP_VERSION=$(python3 -c "import json; print(json.load(open('versions.json'))['app'])")
           echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
 
+      - name: Import codesigning certificates
+        run: |
+          python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
+
       - name: Build IPA
         run: |
           python3 build-system/Make/Make.py \
