@@ -1166,7 +1166,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
                 context: item.context,
                 presentationData: item.presentationData,
                 edited: edited,
-                isDeleted: item.message.ghostgramIsDeleted,
+                isDeleted: item.message.mqgramIsDeleted,
                 impressionCount: viewCount,
                 dateText: dateText,
                 type: statusType,

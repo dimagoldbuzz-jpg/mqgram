@@ -2,11 +2,11 @@ import Foundation
 
 
 /// Manages edit history for messages
-/// GHOSTGRAM: Stores original message text before edits for history viewing
+/// MQGRAM: Stores original message text before edits for history viewing
 public final class EditHistoryManager {
     public static let shared = EditHistoryManager()
     
-    private let historyKey = "ghostgram_edit_history"
+    private let historyKey = "mqgram_edit_history"
     private var editHistory: [String: [EditRecord]] = [:]
     private let lock = NSLock()
     

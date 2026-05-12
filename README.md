@@ -1,41 +1,56 @@
-# Telegram iOS Source Code Compilation Guide
+# MQGram — Telegram iOS with Enhanced Privacy
 
-We welcome all developers to use our API and source code to create applications on our platform.
-There are several things we require from **all developers** for the moment.
+<p align="center">
+  <b>MQGram</b> — a privacy-focused Telegram client for iOS with advanced anti-delete, ghost mode, and device spoofing features.
+</p>
 
-# Creating your Telegram Application
+---
 
-1. [**Obtain your own api_id**](https://core.telegram.org/api/obtaining_api_id) for your application.
-2. Please **do not** use the name Telegram for your app — or make sure your users understand that it is unofficial.
-3. Kindly **do not** use our standard logo (white paper plane in a blue circle) as your app's logo.
-3. Please study our [**security guidelines**](https://core.telegram.org/mtproto/security_guidelines) and take good care of your users' data and privacy.
-4. Please remember to publish **your** code too in order to comply with the licences.
+## ✨ Key Features
 
-# Quick Compilation Guide
+| Feature | Description |
+|---------|-------------|
+| 🗑 **Anti-Delete** | Intercept and save deleted messages so you never miss anything |
+| 👻 **Ghost Mode** | Hide read receipts, typing indicators, and online status |
+| 📱 **Device Spoofing** | Mask your real device info for extra privacy |
+| 🎙 **Voice Morpher** | Transform your voice messages with built-in presets |
+| ⏱ **Send Delay** | Add a configurable delay before messages are sent — undo before it's too late |
+| ✏️ **Edit History** | Track and view the full edit history of any message |
+| 🔒 **Forward Protection Bypass** | Copy and forward messages from restricted chats |
 
-## Get the Code
+## 🛠 Requirements
 
+- **macOS** (latest recommended)
+- **Xcode** — see `versions.json` for the exact required version
+- **Python 3.x**
+- **Bazel** (managed by the build system)
+
+## 🚀 Quick Start
+
+### 1. Get Telegram API Credentials
+
+Go to [my.telegram.org](https://my.telegram.org), log in, and create an application to get your `api_id` and `api_hash`.
+
+### 2. Clone the Repository
+
+```bash
+git clone --recursive -j8 https://github.com/dimagoldbuzz-jpg/mqgram.git
+cd mqgram
 ```
-git clone --recursive -j8 https://github.com/TelegramMessenger/Telegram-iOS.git
-```
 
-## Setup Xcode
-
-Install Xcode (directly from https://developer.apple.com/download/applications or using the App Store).
-
-## Adjust Configuration
+### 3. Configure the Build
 
 1. Generate a random identifier:
-```
-openssl rand -hex 8
-```
-2. Create a new Xcode project. Use `Telegram` as the Product Name. Use `org.{identifier from step 1}` as the Organization Identifier.
-3. Open `Keychain Access` and navigate to `Certificates`. Locate `Apple Development: your@email.address (XXXXXXXXXX)` and double tap the certificate. Under `Details`, locate `Organizational Unit`. This is the Team ID.
-4. Edit `build-system/template_minimal_development_configuration.json`. Use data from the previous steps.
+   ```bash
+   openssl rand -hex 8
+   ```
+2. Create a dummy Xcode project named `Telegram` with organization identifier `org.<YOUR_HEX_ID>`.
+3. Find your **Team ID** in Keychain Access → Certificates → Apple Development certificate → Details → Organizational Unit.
+4. Edit `build-system/template_minimal_development_configuration.json` with your credentials.
 
-## Generate an Xcode project
+### 4. Generate Xcode Project
 
-```
+```bash
 python3 build-system/Make/Make.py \
     --cacheDir="$HOME/telegram-bazel-cache" \
     generateProject \
@@ -43,74 +58,67 @@ python3 build-system/Make/Make.py \
     --xcodeManagedCodesigning
 ```
 
-# Advanced Compilation Guide
+### 5. Build & Run
 
-## Xcode
+Open the generated Xcode project and run on your device or simulator.
 
-1. Copy and edit `build-system/appstore-configuration.json`.
-2. Copy `build-system/fake-codesigning`. Create and download provisioning profiles, using the `profiles` folder as a reference for the entitlements.
-3. Generate an Xcode project:
-```
-python3 build-system/Make/Make.py \
-    --cacheDir="$HOME/telegram-bazel-cache" \
-    generateProject \
-    --configurationPath=configuration_from_step_1.json \
-    --codesigningInformationPath=directory_from_step_2
-```
+---
 
-## IPA
+## 🏗 Advanced Build Options
 
-1. Repeat the steps from the previous section. Use distribution provisioning profiles.
-2. Run:
-```
+### Building an IPA (Release)
+
+```bash
 python3 build-system/Make/Make.py \
     --cacheDir="$HOME/telegram-bazel-cache" \
     build \
-    --configurationPath=...see previous section... \
-    --codesigningInformationPath=...see previous section... \
+    --configurationPath=your_config.json \
+    --codesigningInformationPath=your_profiles_dir \
     --buildNumber=100001 \
     --configuration=release_arm64
 ```
 
-# FAQ
+### Simulator Build (No Codesigning)
 
-## Xcode is stuck at "build-request.json not updated yet"
+Add `--disableProvisioningProfiles` to skip codesigning for simulator builds.
 
-Occasionally, you might observe the following message in your build log:
-```
-"/Users/xxx/Library/Developer/Xcode/DerivedData/Telegram-xxx/Build/Intermediates.noindex/XCBuildData/xxx.xcbuilddata/build-request.json" not updated yet, waiting...
-```
+---
 
-Should this occur, simply cancel the ongoing build and initiate a new one.
+## ❓ FAQ
 
-## Telegram_xcodeproj: no such package 
+### "build-request.json not updated yet"
+Cancel the build in Xcode and restart it.
 
-Following a system restart, the auto-generated Xcode project might encounter a build failure accompanied by this error:
-```
-ERROR: Skipping '@rules_xcodeproj_generated//generator/Telegram/Telegram_xcodeproj:Telegram_xcodeproj': no such package '@rules_xcodeproj_generated//generator/Telegram/Telegram_xcodeproj': BUILD file not found in directory 'generator/Telegram/Telegram_xcodeproj' of external repository @rules_xcodeproj_generated. Add a BUILD file to a directory to mark it as a package.
-```
+### "no such package @rules_xcodeproj_generated"
+Re-run the `generateProject` command after a system restart.
 
-If you encounter this issue, re-run the project generation steps in the README.
-
-
-# Tips
-
-## Codesigning is not required for simulator-only builds
-
-Add `--disableProvisioningProfiles`:
-```
-python3 build-system/Make/Make.py \
-    --cacheDir="$HOME/telegram-bazel-cache" \
-    generateProject \
-    --configurationPath=path-to-configuration.json \
-    --codesigningInformationPath=path-to-provisioning-data \
-    --disableProvisioningProfiles
+### Overriding Xcode Version
+```bash
+python3 build-system/Make/Make.py --overrideXcodeVersion generateProject ...
 ```
 
-## Versions
+---
 
-Each release is built using a specific Xcode version (see `versions.json`). The helper script checks the versions of the installed software and reports an error if they don't match the ones specified in `versions.json`. It is possible to bypass these checks:
+## 📂 Project Structure
 
 ```
-python3 build-system/Make/Make.py --overrideXcodeVersion build ... # Don't check the version of Xcode
+MQGram/
+├── Telegram/          # Core app and extensions
+├── submodules/        # Feature libraries
+│   ├── SettingsUI/    # MQGram settings controller
+│   ├── TelegramCore/  # Anti-delete & edit history logic
+│   └── TelegramUI/    # Chat UI with privacy overlays
+├── build-system/      # Bazel build configuration
+├── third-party/       # External dependencies
+└── Swiftgram/         # Swiftgram integration layer
 ```
+
+## 📄 License
+
+This project is based on [Telegram iOS](https://github.com/nicegram/nicegram-ios) source code.
+See [LICENSE](LICENSE) for details.
+
+---
+
+> **Note**: MQGram is an unofficial Telegram client. Use at your own discretion.
+> For issues and suggestions, open a GitHub issue.

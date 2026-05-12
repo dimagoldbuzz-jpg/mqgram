@@ -1,4 +1,4 @@
-# Ghostgram iOS Compilation Guide
+# MQGram iOS Compilation Guide
 
 > **Important**: Notifications, calls, and some other cloud-dependent features may not be fully implemented in this fork's development builds. For daily use, it is recommended to keep the official Telegram App installed.
 
