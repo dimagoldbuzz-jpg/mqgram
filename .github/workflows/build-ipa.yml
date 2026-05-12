@@ -98,6 +98,7 @@ jobs:
         run: |
           python3 build-system/Make/Make.py \
             --overrideXcodeVersion \
+            --overrideBazelVersion \
             --cacheDir="${{ env.CACHE_DIR }}" \
             build \
             --configurationPath=build-system/build-configuration.json \
