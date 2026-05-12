@@ -1,0 +1,163 @@
+name: Build MQGram IPA
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'Build number'
+        required: false
+        default: '100001'
+      configuration:
+        description: 'Build configuration'
+        required: false
+        default: 'release_arm64'
+        type: choice
+        options:
+          - release_arm64
+          - debug_arm64
+
+permissions:
+  contents: write
+
+env:
+  CACHE_DIR: "${{ github.workspace }}/telegram-bazel-cache"
+
+jobs:
+  build:
+    name: Build IPA
+    runs-on: macos-15
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Cache Bazel
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.CACHE_DIR }}
+            ~/.cache/bazel
+          key: bazel-${{ runner.os }}-${{ hashFiles('MODULE.bazel', 'MODULE.bazel.lock') }}
+          restore-keys: |
+            bazel-${{ runner.os }}-
+
+      - name: Create build configuration
+        run: |
+          cat > build-system/build-configuration.json << 'EOF'
+          {
+            "bundle_id": "${{ secrets.BUNDLE_ID || 'org.mqgram.MQGram' }}",
+            "api_id": "${{ secrets.TELEGRAM_API_ID }}",
+            "api_hash": "${{ secrets.TELEGRAM_API_HASH }}",
+            "team_id": "${{ secrets.TEAM_ID || 'ABCDEFGHIJ' }}",
+            "app_center_id": "0",
+            "is_internal_build": "true",
+            "is_appstore_build": "false",
+            "appstore_id": "0",
+            "app_specific_url_scheme": "mqgram",
+            "premium_iap_product_id": "",
+            "enable_siri": false,
+            "enable_icloud": false
+          }
+          EOF
+
+      - name: Determine build number
+        id: build_info
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BUILD_NUMBER="${{ github.event.inputs.build_number }}"
+            CONFIGURATION="${{ github.event.inputs.configuration }}"
+          else
+            BUILD_NUMBER="100001"
+            CONFIGURATION="release_arm64"
+          fi
+          echo "build_number=${BUILD_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "configuration=${CONFIGURATION}" >> "$GITHUB_OUTPUT"
+
+          # Extract version from versions.json
+          APP_VERSION=$(python3 -c "import json; print(json.load(open('versions.json'))['app'])")
+          echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build IPA
+        run: |
+          python3 build-system/Make/Make.py \
+            --cacheDir="${{ env.CACHE_DIR }}" \
+            build \
+            --configurationPath=build-system/build-configuration.json \
+            --codesigningInformationPath=build-system/fake-codesigning \
+            --buildNumber=${{ steps.build_info.outputs.build_number }} \
+            --configuration=${{ steps.build_info.outputs.configuration }} \
+            --disableProvisioningProfiles \
+            --outputBuildArtifactsPath=build-output \
+            --overrideXcodeVersion
+
+      - name: Rename IPA
+        run: |
+          VERSION="${{ steps.build_info.outputs.app_version }}"
+          BUILD="${{ steps.build_info.outputs.build_number }}"
+          mv build-output/Telegram.ipa "build-output/MQGram-${VERSION}-${BUILD}.ipa"
+          echo "IPA_NAME=MQGram-${VERSION}-${BUILD}.ipa" >> "$GITHUB_ENV"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MQGram-IPA
+          path: build-output/*.ipa
+          retention-days: 90
+
+      - name: Upload dSYMs artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: MQGram-dSYMs
+          path: build-output/*.DSYMs.zip
+          retention-days: 90
+          if-no-files-found: ignore
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "MQGram ${{ steps.build_info.outputs.app_version }}"
+          body: |
+            ## MQGram ${{ steps.build_info.outputs.app_version }} (Build ${{ steps.build_info.outputs.build_number }})
+
+            ### Installation via Sideloading
+
+            1. Download the `.ipa` file below
+            2. Install using one of:
+               - **AltStore** — [altstore.io](https://altstore.io)
+               - **Sideloadly** — [sideloadly.io](https://sideloadly.io)
+               - **SideStore** — [sidestore.io](https://sidestore.io)
+            3. Connect your iPhone to your PC/Mac
+            4. Open AltStore/Sideloadly and select the downloaded IPA
+            5. Sign in with your Apple ID when prompted
+            6. The app will be installed on your device
+
+            ### Features
+            - 🗑 Anti-Delete — save deleted messages
+            - 👻 Ghost Mode — hide read receipts & online status
+            - 📱 Device Spoofing — mask device info
+            - 🎙 Voice Morpher — voice effects for messages
+            - ⏱ Send Delay — undo sent messages
+            - ✏️ Edit History — track message edits
+          files: |
+            build-output/${{ env.IPA_NAME }}
+          draft: false
+          prerelease: false

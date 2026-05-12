@@ -84,6 +84,78 @@ Add `--disableProvisioningProfiles` to skip codesigning for simulator builds.
 
 ---
 
+## 📲 Install via Sideloading (AltStore / Sideloadly)
+
+The easiest way to install MQGram on your iPhone — no jailbreak required.
+
+### Option 1: Download from GitHub Releases (Recommended)
+
+1. Go to [**Releases**](../../releases) and download the latest `.ipa` file
+2. Install using one of the tools below:
+
+### Option 2: Build via GitHub Actions
+
+1. Go to the [**Actions**](../../actions) tab → **Build MQGram IPA**
+2. Click **Run workflow** → **Run**
+3. Wait for the build to complete (~30-60 min)
+4. Download the IPA from **Artifacts**
+
+### Installation Tools
+
+| Tool | Platform | Link |
+|------|----------|------|
+| **AltStore** | Windows / macOS | [altstore.io](https://altstore.io) |
+| **Sideloadly** | Windows / macOS | [sideloadly.io](https://sideloadly.io) |
+| **SideStore** | iOS (no PC needed) | [sidestore.io](https://sidestore.io) |
+| **Scarlet** | iOS | [usescarlet.com](https://usescarlet.com) |
+| **TrollStore** | iOS (permanent) | [GitHub](https://github.com/opa334/TrollStore) |
+
+### Step-by-Step: AltStore
+
+1. Install **AltStore** on your PC/Mac from [altstore.io](https://altstore.io)
+2. Connect your iPhone via USB
+3. Open AltStore on PC → **Install AltStore** to your device
+4. Download the MQGram `.ipa` file to your PC
+5. Open AltStore on PC → **Install app** → select `MQGram.ipa`
+6. Enter your Apple ID when prompted
+7. MQGram will appear on your home screen
+
+### Step-by-Step: Sideloadly
+
+1. Download **Sideloadly** from [sideloadly.io](https://sideloadly.io)
+2. Connect your iPhone via USB
+3. Drag & drop the MQGram `.ipa` into Sideloadly
+4. Enter your Apple ID and click **Start**
+5. MQGram will be installed on your device
+
+> **Note:** Free Apple IDs require re-signing every 7 days. Use AltStore's background refresh or a paid Apple Developer account ($99/year) for permanent installation.
+
+---
+
+## 🔧 GitHub Actions Setup (for automated builds)
+
+To enable automated IPA builds, add these secrets in your repo **Settings → Secrets → Actions**:
+
+| Secret | Required | Description |
+|--------|----------|-------------|
+| `TELEGRAM_API_ID` | **Yes** | Your Telegram API ID from [my.telegram.org](https://my.telegram.org) |
+| `TELEGRAM_API_HASH` | **Yes** | Your Telegram API Hash |
+| `BUNDLE_ID` | No | Custom bundle ID (default: `org.mqgram.MQGram`) |
+| `TEAM_ID` | No | Apple Developer Team ID |
+
+### Creating a Release
+
+Push a tag to trigger an automatic build + release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow will build the IPA and create a GitHub Release with the download link.
+
+---
+
 ## ❓ FAQ
 
 ### "build-request.json not updated yet"
