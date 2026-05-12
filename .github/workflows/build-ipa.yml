@@ -62,10 +62,10 @@ jobs:
         run: |
           cat > build-system/build-configuration.json << 'EOF'
           {
-            "bundle_id": "${{ secrets.BUNDLE_ID || 'org.mqgram.MQGram' }}",
+            "bundle_id": "${{ secrets.BUNDLE_ID || 'ph.telegra.Telegraph' }}",
             "api_id": "${{ secrets.TELEGRAM_API_ID }}",
             "api_hash": "${{ secrets.TELEGRAM_API_HASH }}",
-            "team_id": "${{ secrets.TEAM_ID || 'ABCDEFGHIJ' }}",
+            "team_id": "${{ secrets.TEAM_ID || 'C67CF9S4VU' }}",
             "app_center_id": "0",
             "is_internal_build": "true",
             "is_appstore_build": "false",
