@@ -97,15 +97,14 @@ jobs:
       - name: Build IPA
         run: |
           python3 build-system/Make/Make.py \
+            --overrideXcodeVersion \
             --cacheDir="${{ env.CACHE_DIR }}" \
             build \
             --configurationPath=build-system/build-configuration.json \
             --codesigningInformationPath=build-system/fake-codesigning \
             --buildNumber=${{ steps.build_info.outputs.build_number }} \
             --configuration=${{ steps.build_info.outputs.configuration }} \
-            --disableProvisioningProfiles \
-            --outputBuildArtifactsPath=build-output \
-            --overrideXcodeVersion
+            --outputBuildArtifactsPath=build-output
 
       - name: Rename IPA
         run: |
